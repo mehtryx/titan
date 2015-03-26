@@ -7,9 +7,6 @@ php:
 env:
     - WP_VERSION=latest WP_MULTISITE=1
 
-install:
-    - npm install
-
 branches:
  only:
    - master
