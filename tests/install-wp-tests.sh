@@ -110,7 +110,7 @@ install_lints() {
 	npm install -g csslint
 
 	# Javascript Lint Tool (jsl)
-	svn co --quiet https://javascriptlint.svn.sourceforge.net/svnroot/javascriptlint/trunk /tmp/jsl
+	svn co --quiet https://svn.code.sf.net/p/javascriptlint/code/trunk /tmp/jsl
 	# Install jsl (Requires python)
 	cd /tmp/jsl/
 	python setup.py build
