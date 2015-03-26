@@ -109,11 +109,9 @@ install_lints() {
 	# CSS Lint Tool (csslint)
 	npm install -g csslint
 
-	# Javascript Lint Tool (jsl)
-	svn co --quiet https://svn.code.sf.net/p/javascriptlint/code/trunk /tmp/jsl
-	# Install jsl (Requires python)
-	cd /tmp/jsl/
-	python setup.py build
+	# Javascript Lint Tool (eslint)
+	npm install -g eslint
+
 }
 
 update_postmedia_test_config() {

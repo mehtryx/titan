@@ -29,7 +29,7 @@ script:
    - /tmp/php-codesniffer/scripts/phpcs -p -s -v -n ../ --standard=./tests/codesniffer.ruleset.xml --extensions=php
 
    # Test JSL
-   - /tmp/jsl/build/scripts-2.7/jsl
+   - eslint
 
    # Test csslint
    - csslint
