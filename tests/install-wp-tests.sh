@@ -105,6 +105,17 @@ install_code_sniffer() {
 	phpenv rehash
 }
 
+install_lints() {
+	# CSS Lint Tool (csslint)
+	npm install -g csslint
+
+	# Javascript Lint Tool (jsl)
+	svn co --quiet https://javascriptlint.svn.sourceforge.net/svnroot/javascriptlint/trunk /tmp/jsl
+	# Install jsl (Requires python)
+	cd /tmp/jsl/
+	python setup.py build
+}
+
 update_postmedia_test_config() {
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
@@ -135,4 +146,5 @@ install_wp
 install_test_suite
 install_db
 install_code_sniffer
+install_lints
 
