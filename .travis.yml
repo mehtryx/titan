@@ -28,6 +28,12 @@ script:
    # Wordpress Coding Standards
    - /tmp/php-codesniffer/scripts/phpcs -p -s -v -n ../ --standard=./tests/codesniffer.ruleset.xml --extensions=php
 
+   # Test JSL
+   - jsl
+
+   # Test csslint
+   - csslint
+
 notifications:
   email:
     - kbenedict@postmedia.com
