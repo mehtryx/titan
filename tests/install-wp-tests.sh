@@ -106,12 +106,17 @@ install_code_sniffer() {
 }
 
 install_lints() {
-	# CSS Lint Tool (csslint)
-	npm install -g csslint
+	# First we copy the package.json from /tmp/ci_config into the $EXEC_DIR
+	cp /tmp/ci_config/package.json $EXEC_DIR
 
-	# Javascript Lint Tool (eslint)
-	npm install -g eslint
+	# Install dependencies globally
+	npm install -g
 
+	# Copy the CSS Lint Tool (csslint) config
+	cp /tmp/ci_config/.csslintrc $EXEC_DIR
+
+	# Copy the javascript Lint Tool (eslint) config
+	cp /tmp/ci_config/.eslintrc $EXEC_DIR
 }
 
 update_postmedia_test_config() {
