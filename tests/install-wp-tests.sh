@@ -110,7 +110,7 @@ install_lints() {
 	cp /tmp/ci_config/package.json $EXEC_DIR
 
 	# Install dependencies globally
-	npm install -g
+	npm install
 
 	# Copy the CSS Lint Tool (csslint) config
 	cp /tmp/ci_config/.csslintrc $EXEC_DIR
