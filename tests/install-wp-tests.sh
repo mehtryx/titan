@@ -22,7 +22,7 @@ EXEC_DIR="$(pwd)"
 if [ -d "$EXEC_DIR" ];
 then
 	# This is a valid directory, so lets make sure its not root
-	if [ "$(stat -s /)" == "$(stat -s $EXEC_DIR)" ];
+	if [ "$(stat /)" == "$(stat $EXEC_DIR)" ];
 	then
 		echo "Error: Script executing from root, or pwd returned root path."
 		exit 1
