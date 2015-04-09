@@ -59,6 +59,7 @@ install_test_suite() {
 		}" "$EXEC_DIR/tests/phpunit.xml"
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
 	cat $EXEC_DIR/tests/phpunit.xml
+	cat /tmp/ci_config/phpunit.xml
 
 }
 
