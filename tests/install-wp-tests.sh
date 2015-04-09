@@ -19,10 +19,10 @@ WP_CORE_DIR=/tmp/wordpress/
 EXEC_DIR="$(pwd)"
 
 # Ensure we are not running this from root or resolving $EXEC_DIR to root path
-if [ -d "$cwd" ];
+if [ -d "$EXEC_DIR" ];
 then
 	# This is a valid directory, so lets make sure its not root
-	if [ "$(stat -s /)" == "$(stat -s $cwd)" ];
+	if [ "$(stat -s /)" == "$(stat -s $EXEC_DIR)" ];
 	then
 		echo "Error: Script executing from root, or pwd returned root path."
 		exit 1
