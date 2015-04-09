@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -ex
+
 if [ $# -lt 3 ]; then
 	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version]"
 	exit 1
@@ -16,7 +18,21 @@ WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
 WP_CORE_DIR=/tmp/wordpress/
 EXEC_DIR="$(pwd)"
 
-set -ex
+# Ensure we are not running this from root or resolving $EXEC_DIR to root path
+if [ -d "$cwd" ];
+then
+	# This is a valid directory, so lets make sure its not root
+	if [ "$(stat -s /)" == "$(stat -s $cwd)" ];
+	then
+		echo "Error: Script executing from root, or pwd returned root path."
+		exit 1
+	fi
+else
+	echo "Error: Script path provided by pwd is not a valid directory path."
+	exit 1
+fi
+
+
 
 install_wp() {
 	mkdir -p $WP_CORE_DIR
