@@ -52,7 +52,7 @@ install_test_suite() {
 
 	# insert contents of the ci_config/phpunit.xml test config then modify the path to reflect actual test folder path
 	#sed $ioption "/\<\!\-\-placeholder do not remove\-\-\>/ {
-		sed $ioption "/splat/ { 
+		sed $ioption "/^.*placeholder.do.not.remove.*$/ { 
 		h
 		r /tmp/ci_config/phpunit.xml
 		g
