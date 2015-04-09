@@ -12,5 +12,6 @@
             <directory prefix="test-" suffix=".php">./custom_tests</directory>
         </testsuite>
         <!--placeholder do not remove-->
+        splat
     </testsuites>
 </phpunit>
