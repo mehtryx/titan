@@ -51,16 +51,13 @@ install_test_suite() {
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
 
 	# insert contents of the ci_config/phpunit.xml test config then modify the path to reflect actual test folder path
-	#sed $ioption "/\<\!\-\-placeholder do not remove\-\-\>/ {
-		sed $ioption "/^.*placeholder.do.not.remove.*$/ { 
+	sed $ioption "/^.*placeholder.do.not.remove.*$/ { 
 		h
 		r /tmp/ci_config/phpunit.xml
 		g
 		N
 		}" "$EXEC_DIR/tests/phpunit.xml"
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
-	cat $EXEC_DIR/tests/phpunit.xml
-	cat /tmp/ci_config/phpunit.xml
 
 }
 
