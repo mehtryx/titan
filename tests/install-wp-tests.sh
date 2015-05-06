@@ -136,8 +136,9 @@ remove_previous_temp_files() {
 	rm -rf /tmp/wordpress*
 	rm -rf /tmp/ci_config
 	rm -rf /tmp/php-codesniffer
-	git checkout $EXEC_DIR/tests/phpunit.xml
+	rm -f $EXEC_DIR/tests/phpunit.xml
 	rm -f $EXEC_DIR/tests/phpunit.xml.bak
+	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
 }
 
 remove_previous_temp_files
