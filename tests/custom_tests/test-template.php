@@ -2,9 +2,6 @@
 error_reporting( E_ERROR & ~E_DEPRECATED & ~E_STRICT );
 
 class PostmediaTest extends WP_UnitTestCase {
-	function setUpBeforeClass() {
-		# Runs first and once only
-	}
 
 	function setUp() {
 		#setup code
@@ -31,9 +28,6 @@ class PostmediaTest extends WP_UnitTestCase {
 		# tear down code
 		parent::tearDown();
 	}
-	
-	function tearDownAfterClass() {
-		# Runs last and once only
-	}
+
 }
 
