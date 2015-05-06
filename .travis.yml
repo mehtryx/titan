@@ -31,7 +31,7 @@ script:
    # ESLint - Javascript lint tests
    #   Files can be ignored by adding to the .eslintignore file, please see the documentation
    #   provided here: http://eslint.org/docs/user-guide/command-line-interface
-   - "$(npm bin)/eslint -f compact ./"
+   - "$(npm bin)/eslint --reset -f compact ./"
 
    # CSSLint - CSS line tests
    #   Rules applied come from CI_config, the repo may add files to an exclusion list
