@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -ex
-
 if [ $# -lt 3 ]; then
 	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version]"
 	exit 1
@@ -18,21 +16,7 @@ WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
 WP_CORE_DIR=/tmp/wordpress/
 EXEC_DIR="$(pwd)"
 
-# Ensure we are not running this from root or resolving $EXEC_DIR to root path
-if [ -d "$EXEC_DIR" ];
-then
-	# This is a valid directory, so lets make sure its not root
-	if [ "$(stat /)" == "$(stat $EXEC_DIR)" ];
-	then
-		echo "Error: Script executing from root, or pwd returned root path."
-		exit 1
-	fi
-else
-	echo "Error: Script path provided by pwd is not a valid directory path."
-	exit 1
-fi
-
-
+set -ex
 
 install_wp() {
 	mkdir -p $WP_CORE_DIR
@@ -66,13 +50,7 @@ install_test_suite() {
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
 
-	# insert contents of the ci_config/phpunit.xml test config then modify the path to reflect actual test folder path
-	sed $ioption "/^.*placeholder.do.not.remove.*$/ { 
-		h
-		r /tmp/ci_config/phpunit.xml
-		g
-		N
-		}" "$EXEC_DIR/tests/phpunit.xml"
+	# modify the path to reflect actual test folder path
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
 
 }
@@ -125,7 +103,7 @@ install_lints() {
 	# First we copy the package.json from /tmp/ci_config into the $EXEC_DIR
 	cp /tmp/ci_config/package.json $EXEC_DIR
 
-	# Install dependencies globally
+	# Install dependencies
 	npm install
 
 	# Copy the CSS Lint Tool (csslint) config
@@ -138,11 +116,14 @@ install_lints() {
 update_postmedia_test_config() {
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
-	git clone --quiet https://github.com/mehtryx/CI_Config.git /tmp/ci_config
+	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
 
 	# copy the codesniffer ruleset into the tests folder.
 	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
-	
+
+	# copy the phpunit test config into the tests folder.
+	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
+
 	if [ $WP_VERSION == 'latest' ]; then 
 		#allows us to set the standard on latest from the CI_Config repo
 		#this was needed because trunk is the nightly build, no easy way to id latest stable
