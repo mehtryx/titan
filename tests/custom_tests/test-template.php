@@ -15,9 +15,9 @@ class PostmediaTest extends WP_UnitTestCase {
 		// replace this with some actual testing code
 		$this->assertTrue( false );
 	}
-	function testSample2() {
+	function testEatenByAGrue() {
 		// replace this with some actual testing code
-		$this->assertTrue( true );
+		$this->assertFalse( true );
 	}
 	function testSample3() {
 		// replace this with some actual testing code
