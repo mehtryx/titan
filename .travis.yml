@@ -28,6 +28,18 @@ script:
    # Wordpress Coding Standards
    - /tmp/php-codesniffer/scripts/phpcs -p -s -v -n ../ --standard=./tests/codesniffer.ruleset.xml --extensions=php
 
+   # ESLint - Javascript lint tests
+   #   Files can be ignored by adding to the .eslintignore file, please see the documentation
+   #   provided here: http://eslint.org/docs/user-guide/command-line-interface
+   - "$(npm bin)/eslint -f compact ./"
+
+   # CSSLint - CSS line tests
+   #   Rules applied come from CI_config, the repo may add files to an exclusion list
+   #   by specifying the --exclude-list option like:
+   #      csslint --exclude-list=thirdparty.css,tests/
+   #   This would ignore the thirdparty.css file and any css files under the tests path
+   - "$(npm bin)/csslint --format=compact --quiet ./"
+
 notifications:
   email:
     - kbenedict@postmedia.com

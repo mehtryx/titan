@@ -5,6 +5,7 @@ class PostmediaTest extends WP_UnitTestCase {
 
 	function setUp() {
 		#setup code
+		parent::setUp();
 	}
 
 	# Additional functions for tests need to be prefixed with 'test' i.e.:
@@ -12,11 +13,21 @@ class PostmediaTest extends WP_UnitTestCase {
 
 	function testSample() {
 		// replace this with some actual testing code
+		$this->assertTrue( false );
+	}
+	function testEatenByAGrue() {
+		// replace this with some actual testing code
+		$this->assertFalse( true );
+	}
+	function testSample3() {
+		// replace this with some actual testing code
 		$this->assertTrue( true );
 	}
 
 	function tearDown() {
-		# tear down code 
+		# tear down code
+		parent::tearDown();
 	}
+
 }
 
