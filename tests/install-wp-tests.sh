@@ -22,7 +22,7 @@ install_wp() {
 	mkdir -p $WP_CORE_DIR
 
 	local ARCHIVE_NAME="wordpress-$WP_VERSION"
-	wget -nv -O /tmp/wordpress.tar.gz http://wordpress.org/${ARCHIVE_NAME}.tar.gz
+	wget -nv -O /tmp/wordpress.tar.gz https://wordpress.org/${ARCHIVE_NAME}.tar.gz
 	tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
 
 	cp /tmp/ci_config/db.php $WP_CORE_DIR/wp-content/db.php 
@@ -39,25 +39,26 @@ install_test_suite() {
 	# set up testing suite
 	mkdir -p $WP_TESTS_DIR
 	cd $WP_TESTS_DIR
-	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/includes/
-	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/tests/
-	svn co --quiet http://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/data/
+	svn co --quiet --non-interactive --trust-server-cert https://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/includes/ 
+	svn co --quiet --non-interactive --trust-server-cert https://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/tests/
+	svn co --quiet --non-interactive --trust-server-cert https://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/data/
 
-	wget -nv -O wp-tests-config.php http://develop.svn.wordpress.org/tags/${WP_VERSION}/wp-tests-config-sample.php
+	wget -nv -O wp-tests-config.php https://develop.svn.wordpress.org/tags/${WP_VERSION}/wp-tests-config-sample.php
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
 	sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" wp-tests-config.php
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
 	sed $ioption "s/yourpasswordhere/$DB_PASS/" wp-tests-config.php
 	sed $ioption "s|localhost|${DB_HOST}|" wp-tests-config.php
 
-	# insert contents of the ci_config/phpunit.xml test config then modify the path to reflect actual test folder path
-	sed $ioption "/\<\!\-\-placeholder do not remove\-\-\>/ { 
-		h
-		r /tmp/ci_config/phpunit.xml
-		g
-		N
-		}" "$EXEC_DIR/tests/phpunit.xml"
+	# modify the path to reflect actual test folder path
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
+
+	# Pull down wpcom_vip helper functionality - Developers should include these in the bootstrap file as needed only
+	svn co --quiet --non-interactive --trust-server-cert https://vip-svn.wordpress.com/plugins/vip-do-not-include-on-wpcom
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-init.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-wpcom.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-stats-wpcom.php
 
 }
 
@@ -105,14 +106,31 @@ install_code_sniffer() {
 	phpenv rehash
 }
 
+install_lints() {
+	# First we copy the package.json from /tmp/ci_config into the $EXEC_DIR
+	cp /tmp/ci_config/package.json $EXEC_DIR
+
+	# Install dependencies
+	npm install
+
+	# Copy the CSS Lint Tool (csslint) config
+	cp /tmp/ci_config/.csslintrc $EXEC_DIR
+
+	# Copy the javascript Lint Tool (eslint) config
+	cp /tmp/ci_config/.eslintrc $EXEC_DIR
+}
+
 update_postmedia_test_config() {
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
-	git clone --quiet https://github.com/mehtryx/CI_Config.git /tmp/ci_config
+	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
 
 	# copy the codesniffer ruleset into the tests folder.
 	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
-	
+
+	# copy the phpunit test config into the tests folder.
+	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
+
 	if [ $WP_VERSION == 'latest' ]; then 
 		#allows us to set the standard on latest from the CI_Config repo
 		#this was needed because trunk is the nightly build, no easy way to id latest stable
@@ -125,8 +143,9 @@ remove_previous_temp_files() {
 	rm -rf /tmp/wordpress*
 	rm -rf /tmp/ci_config
 	rm -rf /tmp/php-codesniffer
-	git checkout $EXEC_DIR/tests/phpunit.xml
+	rm -f $EXEC_DIR/tests/phpunit.xml
 	rm -f $EXEC_DIR/tests/phpunit.xml.bak
+	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
 }
 
 remove_previous_temp_files
@@ -135,4 +154,5 @@ install_wp
 install_test_suite
 install_db
 install_code_sniffer
+install_lints
 
