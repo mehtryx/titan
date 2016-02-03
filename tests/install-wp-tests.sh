@@ -183,11 +183,6 @@ install_coding_standards() {
 }
 
 install_code_sniffer() {
-	
-	# Next we need to pull specific tags from the repo.
-	# for both PHP CodeSniffer and Wordpress-coding-standards
-	# CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
-	# WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
 
 	if [ "$NO_CACHE" == "false" ] && [ -d $CODE_SNIFFER_DIR ]; then
 		# Directory exists, and we are using cache if version is correct
@@ -248,6 +243,18 @@ install_lints() {
 	cp /tmp/ci_config/.eslintrc $EXEC_DIR
 }
 
+create_ci_build_path() {
+
+	if [ $TRAVIS == "true" ]; then
+		#Travis needs us to use sudo and open permissions on this path
+		sudo mkdir -p $INSTALL_PATH
+		sudo chmod 777 $INSTALL_PATH
+	else
+		mkdir -p $INSTALL_PATH
+	fi
+
+}
+
 update_postmedia_test_config() {
 
 	# pull down the custom files required to support wordpress and the testing configs
@@ -281,6 +288,7 @@ remove_previous_temp_files() {
 
 remove_previous_temp_files
 update_postmedia_test_config
+create_ci_build_path
 install_wp
 install_test_suite
 install_db
