@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ $# -lt 3 ]; then
-	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version] [install-path] [no-cache]"
+	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version] [no-cache] [install-path]"
 	exit 1
 fi
 
@@ -10,15 +10,9 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
-INSTALL_PATH=${6-/usr/local/share/ci-build}
-NO_CACHE=${7-false}
+NO_CACHE=${6-false}
+INSTALL_PATH=${7-null}
 TRAVIS=${$TRAVIS:-false}
-
-# Export these into environment variables as other parts may rely on them
-export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib/}
-export WP_CORE_DIR="$INSTALL_PATH/wordpress/"
-export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer/"
-export WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards/"
 
 EXEC_DIR="$(pwd)"
 
@@ -28,6 +22,37 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 set -ex
+
+update_postmedia_test_config() {
+
+	# pull down the custom files required to support wordpress and the testing configs
+	cd $EXEC_DIR
+	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
+	# these three lines are temporary to get the "beta" changes
+	cd /tmp/ci_config
+	git checkout eslint
+	cd $EXEC_DIR
+	
+	# Load the configuraiton files and get dependency versions
+	source /tmp/ci_config/versions.cfg
+	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_VERSION}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
+
+}
+
+remove_previous_temp_files() {
+	# this function removes and reverts files before the installations, no errors are passed on if they don't exist
+	# the deletion of wordpress, phpcodesniffer and related installations are handled based on cache status in those functions
+	rm -rf /tmp/ci_config
+}
+
+remove_previous_temp_files
+update_postmedia_test_config
+
+# Export these into environment variables as other parts may rely on them
+export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib/}
+export WP_CORE_DIR="$INSTALL_PATH/wordpress/"
+export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer/"
+export WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards/"
 
 install_wp() {
 	if [ "$NO_CACHE" == "false" ] && [ -d $WP_CORE_DIR ]; then
@@ -279,32 +304,9 @@ update_git_ignore() {
 	# We need to make sure there is a git ignore file and that it includes files which should not be committed ( helps devs not commit them )
 	# bootstrap.php.bak, ewww....this is going to be messy cause we change it for testing, but.....after testing we need to revert...aha after script!
 	echo "not ready yet...."
-	
-}
-update_postmedia_test_config() {
-
-	# pull down the custom files required to support wordpress and the testing configs
-	cd $EXEC_DIR
-	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
-	# these three lines are temporary to get the "beta" changes
-	cd /tmp/ci_config
-	git checkout eslint
-	cd $EXEC_DIR
-	
-	# Load the configuraiton files and get dependency versions
-	source /tmp/ci_config/versions.cfg
-	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_VERSION}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
 
 }
 
-remove_previous_temp_files() {
-	# this function removes and reverts files before the installations, no errors are passed on if they don't exist
-	# the deletion of wordpress, phpcodesniffer and related installations are handled based on cache status in those functions
-	rm -rf /tmp/ci_config
-}
-
-remove_previous_temp_files
-update_postmedia_test_config
 update_git_ignore
 create_ci_build_path
 install_wp
