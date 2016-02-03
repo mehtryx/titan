@@ -1,7 +1,7 @@
 language: php
 
 # Added to support travis container infrastructure See http://docs.travis-ci.com/user/migrating-from-legacy/
-sudo: false
+sudo: required
 
 # Added caching support to speed up builds!
 cache:
