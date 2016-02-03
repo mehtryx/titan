@@ -12,12 +12,13 @@ DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 INSTALL_PATH=${6-/usr/local/share/ci-build}
 NO_CACHE=${7-false}
+TRAVIS=${$TRAVIS:-false}
 
 # Export these into environment variables as other parts may rely on them
-export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib}
-export WP_CORE_DIR="$INSTALL_PATH/wordpress"
-export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
-export WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
+export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib/}
+export WP_CORE_DIR="$INSTALL_PATH/wordpress/"
+export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer/"
+export WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards/"
 
 EXEC_DIR="$(pwd)"
 
@@ -61,7 +62,7 @@ install_wp() {
 }
 
 install_test_suite() {
-	if [ "$NO_CACHE" == "false" ] && [ -d $WP_TEST_DIR ]; then
+	if [ "$NO_CACHE" == "false" ] && [ -d $WP_TESTS_DIR ]; then
 		# Directory exists, and we are using cache if version is correct
 		if [ -f $WP_TESTS_DIR/.ci-$WP_VERSION.ver ]; then
 			# current version is in cach/installed.  Skip.
@@ -75,7 +76,18 @@ install_test_suite() {
 		# either we are not caching or directory does not exist ( first run )
 		echo -e "${RED}No cached copy present or requested for WordPress Test Library, beginning fresh install...${NC}"
 	fi
-	
+
+	# Remove the temp files for test configuration
+	rm -f $EXEC_DIR/tests/phpunit.xml
+	rm -f $EXEC_DIR/tests/phpunit.xml.bak
+	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
+
+	# copy the codesniffer ruleset into the tests folder.
+	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
+
+	# copy the phpunit test config into the tests folder.
+	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
+
 	# portable in-place argument for both GNU sed and Mac OSX sed
 	if [[ $(uname -s) == 'Darwin' ]]; then
 		local ioption='-i .bak'
@@ -237,6 +249,9 @@ install_lints() {
 	# First we copy the package.json from /tmp/ci_config into the $EXEC_DIR
 	cp /tmp/ci_config/package.json $EXEC_DIR
 
+	# Ensure we are in the right directory to read package.json
+	cd $EXEC_DIR
+
 	# Install dependencies
 	npm install
 
@@ -249,7 +264,7 @@ install_lints() {
 
 create_ci_build_path() {
 
-	if [ $TRAVIS == "true" ]; then
+	if [[ $TRAVIS == "true" ]]; then
 		#Travis needs us to use sudo and open permissions on this path
 		sudo mkdir -p $INSTALL_PATH
 		sudo chmod 777 $INSTALL_PATH
@@ -259,6 +274,13 @@ create_ci_build_path() {
 
 }
 
+update_git_ignore() {
+
+	# We need to make sure there is a git ignore file and that it includes files which should not be committed ( helps devs not commit them )
+	# bootstrap.php.bak, ewww....this is going to be messy cause we change it for testing, but.....after testing we need to revert...aha after script!
+	echo "not ready yet...."
+	
+}
 update_postmedia_test_config() {
 
 	# pull down the custom files required to support wordpress and the testing configs
@@ -271,13 +293,7 @@ update_postmedia_test_config() {
 	
 	# Load the configuraiton files and get dependency versions
 	source /tmp/ci_config/versions.cfg
-	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_DIR}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
-
-	# copy the codesniffer ruleset into the tests folder.
-	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
-
-	# copy the phpunit test config into the tests folder.
-	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
+	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_VERSION}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
 
 }
 
@@ -285,13 +301,11 @@ remove_previous_temp_files() {
 	# this function removes and reverts files before the installations, no errors are passed on if they don't exist
 	# the deletion of wordpress, phpcodesniffer and related installations are handled based on cache status in those functions
 	rm -rf /tmp/ci_config
-	rm -f $EXEC_DIR/tests/phpunit.xml
-	rm -f $EXEC_DIR/tests/phpunit.xml.bak
-	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
 }
 
 remove_previous_temp_files
 update_postmedia_test_config
+update_git_ignore
 create_ci_build_path
 install_wp
 install_test_suite
