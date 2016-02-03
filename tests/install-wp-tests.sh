@@ -13,10 +13,11 @@ WP_VERSION=${5-latest}
 INSTALL_PATH=${6-/usr/local/share/ci-build}
 NO_CACHE=${7-false}
 
-WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib}
-WP_CORE_DIR="$INSTALL_PATH/wordpress"
-CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
-WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
+# Export these into environment variables as other parts rely on them like bootstrap.php
+export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib}
+export WP_CORE_DIR="$INSTALL_PATH/wordpress"
+export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
+export WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
 
 EXEC_DIR="$(pwd)"
 
