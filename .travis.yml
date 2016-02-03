@@ -3,6 +3,12 @@ language: php
 # Added to support travis container infrastructure See http://docs.travis-ci.com/user/migrating-from-legacy/
 sudo: false
 
+# Added caching support to speed up builds!
+cache:
+    directories:
+    - /usr/local/share/ci-build
+    - node_modules
+
 php:
     - 5.3
     - 5.4

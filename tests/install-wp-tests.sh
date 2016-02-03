@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ $# -lt 3 ]; then
-	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version]"
+	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version] [install-path] [no-cache]"
 	exit 1
 fi
 
@@ -10,30 +10,81 @@ DB_USER=$2
 DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
+INSTALL_PATH=${6-/usr/local/share/ci-build}
+NO_CACHE=${7-false}
 
+WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib}
+WP_CORE_DIR="$INSTALL_PATH/wordpress"
+CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
+WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
 
-WP_TESTS_DIR=${WP_TESTS_DIR-/tmp/wordpress-tests-lib}
-WP_CORE_DIR=/tmp/wordpress/
 EXEC_DIR="$(pwd)"
+
+# Formatting output to make it easier to function read 
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
 
 set -ex
 
 install_wp() {
+	if [ "$NO_CACHE" == "false" ] && [ -d $WP_CORE_DIR ]; then
+		# Directory exists, lets look for the version
+		if [ -f $WP_CORE_DIR/.ci-$WP_VERSION.ver ]; then
+			# current version in cache or installed is correct, skip
+			echo -e "${CYAN}WordPress version ${WP_VERSION} is cached, skipping re-install.${NC}"
+			return
+		else
+			# Not found or installed.
+			echo -e "${RED}Installed WordPress version does not match version required ( ${WP_VERSION} ), beginning fresh install...${NC}"
+		fi
+	else
+		# either not caching or directory doesnt exist
+		echo -e "${RED}No cached copy present or requested for WordPress, beginning fresh install...${NC}"
+	fi
+
+	# Remove any files that may still be there before re-installing
+	if [ -d $WP_CORE_DIR ]; then
+		rm -rf $WP_CORE_DIR
+	fi
+
 	mkdir -p $WP_CORE_DIR
 
 	local ARCHIVE_NAME="wordpress-$WP_VERSION"
 	wget -nv -O /tmp/wordpress.tar.gz https://wordpress.org/${ARCHIVE_NAME}.tar.gz
 	tar --strip-components=1 -zxmf /tmp/wordpress.tar.gz -C $WP_CORE_DIR
 
+	# mark the version
+	touch ${WP_CORE_DIR}/.ci-${WP_VERSION}.ver
 	cp /tmp/ci_config/db.php $WP_CORE_DIR/wp-content/db.php 
 }
 
 install_test_suite() {
+	if [ "$NO_CACHE" == "false" ] && [ -d $WP_TEST_DIR ]; then
+		# Directory exists, and we are using cache if version is correct
+		if [ -f $WP_TESTS_DIR/.ci-$WP_VERSION.ver ]; then
+			# current version is in cach/installed.  Skip.
+			echo -e "${CYAN}WordPress Test Librairies version ${WP_VERSION} is cached, skipping re-install.${NC}"
+			return
+		else
+			# Not installed or incorrect version
+			echo -e "${RED}Installed WordPress Test Librairies version does not match the version required ( ${WP_VERSION} ), beginning fresh install...${NC}"
+		fi
+	else
+		# either we are not caching or directory does not exist ( first run )
+		echo -e "${RED}No cached copy present or requested for WordPress Test Library, beginning fresh install...${NC}"
+	fi
+	
 	# portable in-place argument for both GNU sed and Mac OSX sed
 	if [[ $(uname -s) == 'Darwin' ]]; then
 		local ioption='-i .bak'
 	else
 		local ioption='-i'
+	fi
+
+	# Remove any files that may still be there before re-installing
+	if [ -d $WP_TESTS_DIR ]; then
+		rm -rf $WP_TESTS_DIR
 	fi
 
 	# set up testing suite
@@ -60,6 +111,8 @@ install_test_suite() {
 	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-wpcom.php
 	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-stats-wpcom.php
 
+	# mark the version
+	touch ${WP_TESTS_DIR}/.ci-${WP_VERSION}.ver
 }
 
 install_db() {
@@ -79,6 +132,10 @@ install_db() {
 		fi
 	fi
 
+	# Yes we know using a password on a command line can be insecure.  Since these are databases with no data worth anything that exist solely for 
+	# the test execution then drop out of existence, we will forgive this. Risk is a window of 2 minutes for someone to take over the 
+	# virtual machine, grep logs and exploit the system, but it is also Travis-ci's problem as they use blank passwords anyway.
+	#
 	# drop database if it exists (-f forces so no prompt to confirm, and ignores error if db didnt exist)
 	#mysqladmin drop $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA -f
 	mysql -u "$DB_USER" --password="$DB_PASS" -e "drop database if exists $DB_NAME"$EXTRA
@@ -87,23 +144,94 @@ install_db() {
 	mysqladmin create $DB_NAME --user="$DB_USER" --password="$DB_PASS"$EXTRA
 }
 
-install_code_sniffer() {
-	# Install CodeSniffer for WordPress Coding Standards checks.
-	git clone --quiet https://github.com/squizlabs/PHP_CodeSniffer.git /tmp/php-codesniffer
+install_coding_standards() {
+
+	if [ "$NO_CACHE" == "false" ] && [ -d $WP_CODING_STD_DIR ]; then
+		# Directory exists, and we are using cache if version is correct
+		if [ -f $WP_CODING_STD_DIR/.ci-$WP_CODING_STD_VERSION.ver ]; then
+			# current version is in cach/installed.  Skip.
+			echo -e "${CYAN}WordPress Coding Standards version ${WP_CODING_STD_VERSION} is cached, skipping re-install.${NC}"
+			return
+		else
+			# Not installed or incorrect version
+			echo -e "${RED}Installed WordPress Coding Standards version does not match the version required ( ${WP_CODING_STD_VERSION} ), beginning fresh install...${NC}"
+		fi
+	else
+		# either we are not caching or directory does not exist ( first run )
+		echo -e "${RED}No cached copy present or requested for WordPress Coding Standards, beginning fresh install...${NC}"
+	fi
+
+	# Remove any files that may still be there before re-installing
+	if [ -d $WP_CODING_STD_DIR ]; then
+		rm -rf $WP_CODING_STD_DIR
+	fi
 
 	# Install WordPress Coding Standards.
-	git clone --quiet https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards.git /tmp/wordpress-coding-standards
+	git clone --quiet https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards.git $WP_CODING_STD_DIR
+
+	# Hop into the WordPress Coding Standards directory.
+	cd $WP_CODING_STD_DIR
+
+	# Point to the correct tag for the verion we accept
+	git checkout tags/$WP_CODING_STD_VERSION -b wp_coding_std_version
+
+	# Remove the .git folder so that we only cache the files needed.
+	rm -rf ./.git
+
+	# mark the version
+	touch ${WP_CODING_STD_DIR}/.ci-${WP_CODING_STD_VERSION}.ver
+}
+
+install_code_sniffer() {
+	
+	# Next we need to pull specific tags from the repo.
+	# for both PHP CodeSniffer and Wordpress-coding-standards
+	# CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
+	# WP_CODING_STD_DIR="$INSTALL_PATH/wordpress-coding-standards"
+
+	if [ "$NO_CACHE" == "false" ] && [ -d $CODE_SNIFFER_DIR ]; then
+		# Directory exists, and we are using cache if version is correct
+		if [ -f $CODE_SNIFFER_DIR/.ci-$PHP_CODESNIFFER_VERSION.ver ]; then
+			# current version is in cach/installed.  Skip.
+			echo -e "${CYAN}PHP Codesniffer version ${PHP_CODESNIFFER_VERSION} is cached, skipping re-install.${NC}"
+			return
+		else
+			# Not installed or incorrect version
+			echo -e "${RED}Installed PHP Codesniffer version does not match the version required ( ${PHP_CODESNIFFER_VERSION} ), beginning fresh install...${NC}"
+		fi
+	else
+		# either we are not caching or directory does not exist ( first run )
+		echo -e "${RED}No cached copy present or requested for PHP Codesniffer, beginning fresh install...${NC}"
+	fi
+
+	# Remove any files that may still be there before re-installing
+	if [ -d $CODE_SNIFFER_DIR ]; then
+		rm -rf $CODE_SNIFFER_DIR
+	fi
+
+	# Install CodeSniffer for WordPress Coding Standards checks.
+	git clone --quiet https://github.com/squizlabs/PHP_CodeSniffer.git $CODE_SNIFFER_DIR
 
 	# Hop into CodeSniffer directory.
-	cd /tmp/php-codesniffer
+	cd $CODE_SNIFFER_DIR
 
+	# Point to the correct tag for the version we accept
+	git checkout tags/$PHP_CODESNIFFER_VERSION -b php_codesniffer_version
+
+	# Remove the .git folder so that we only cache the files needed
+	rm -rf ./.git
+	
 	# Set install path for WordPress Coding Standards
-	# @link https://github.com/squizlabs/PHP_CodeSniffer/blob/4237c2fc98cc838730b76ee9cee316f99286a2a7/CodeSniffer.php#L1941
-	./scripts/phpcs --config-set installed_paths ../wordpress-coding-standards
+	./scripts/phpcs --config-set installed_paths ${WP_CODING_STD_DIR}
 
 	# Return to build directory and rehash env vars
 	cd $EXEC_DIR
-	phpenv rehash
+
+	# Testing removal, as not used on most systems now, may add a check for travis environment variable to choose to run this.
+	#phpenv rehash
+	
+	# mark the version
+	touch ${CODE_SNIFFER_DIR}/.ci-${PHP_CODESNIFFER_VERSION}.ver
 }
 
 install_lints() {
@@ -121,9 +249,18 @@ install_lints() {
 }
 
 update_postmedia_test_config() {
+
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
 	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
+	# these three lines are temporary to get the "beta" changes
+	cd /tmp/ci_config
+	git checkout eslint
+	cd $EXEC_DIR
+	
+	# Load the configuraiton files and get dependency versions
+	source /tmp/ci_config/versions.cfg
+	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_DIR}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
 
 	# copy the codesniffer ruleset into the tests folder.
 	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
@@ -131,18 +268,12 @@ update_postmedia_test_config() {
 	# copy the phpunit test config into the tests folder.
 	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
 
-	if [ $WP_VERSION == 'latest' ]; then 
-		#allows us to set the standard on latest from the CI_Config repo
-		#this was needed because trunk is the nightly build, no easy way to id latest stable
-		WP_VERSION="$(/tmp/ci_config/wordpress_latest.sh)"
-	fi
 }
 
 remove_previous_temp_files() {
 	# this function removes and reverts files before the installations, no errors are passed on if they don't exist
-	rm -rf /tmp/wordpress*
+	# the deletion of wordpress, phpcodesniffer and related installations are handled based on cache status in those functions
 	rm -rf /tmp/ci_config
-	rm -rf /tmp/php-codesniffer
 	rm -f $EXEC_DIR/tests/phpunit.xml
 	rm -f $EXEC_DIR/tests/phpunit.xml.bak
 	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
@@ -153,6 +284,7 @@ update_postmedia_test_config
 install_wp
 install_test_suite
 install_db
+install_coding_standards
 install_code_sniffer
 install_lints
 
