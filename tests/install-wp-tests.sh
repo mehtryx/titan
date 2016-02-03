@@ -13,7 +13,7 @@ WP_VERSION=${5-latest}
 INSTALL_PATH=${6-/usr/local/share/ci-build}
 NO_CACHE=${7-false}
 
-# Export these into environment variables as other parts rely on them like bootstrap.php
+# Export these into environment variables as other parts may rely on them
 export WP_TESTS_DIR=${WP_TESTS_DIR:-${INSTALL_PATH}/wordpress-tests-lib}
 export WP_CORE_DIR="$INSTALL_PATH/wordpress"
 export CODE_SNIFFER_DIR="$INSTALL_PATH/php-codesniffer"
@@ -104,6 +104,9 @@ install_test_suite() {
 
 	# modify the path to reflect actual test folder path
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
+
+	# update the path in bootstrap.php for the WP_TESTS_DIR variable
+	sed $ioption "s:WP_TESTS_DIR:$WP_TESTS_DIR:" $EXEC_DIR/tests/bootstrap.php
 
 	# Pull down wpcom_vip helper functionality - Developers should include these in the bootstrap file as needed only
 	svn co --quiet --non-interactive --trust-server-cert https://vip-svn.wordpress.com/plugins/vip-do-not-include-on-wpcom
