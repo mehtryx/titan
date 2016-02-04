@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [ $# -lt 3 ]; then
-	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version] [no-cache] [install-path]"
+	echo "usage: $0 <db-name> <db-user> <db-pass> [db-host] [wp-version] [no-cache]"
 	exit 1
 fi
 
@@ -11,7 +11,6 @@ DB_PASS=$3
 DB_HOST=${4-localhost}
 WP_VERSION=${5-latest}
 NO_CACHE=${6-false}
-INSTALL_PATH=${7-null}
 TRAVIS=${$TRAVIS:-false}
 
 EXEC_DIR="$(pwd)"
