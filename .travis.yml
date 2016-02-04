@@ -29,27 +29,30 @@ before_script:
     - bash tests/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION 
 
 script:
+   # This script contains all the former testing steps as per changes for caching.
+   - /tmp/ci_config/scripts/run_tests.sh
+
    # What if we made these calls seperate.....
    # phpunit test cases
-   - "phpunit -c tests/phpunit.xml"
+   #- "phpunit -c tests/phpunit.xml"
 
    # PHP syntax error checks
-   - find ../ \( -name '*.php' \) -exec php -lf {} \;
+   #- find ../ \( -name '*.php' \) -exec php -lf {} \;
 
    # Wordpress Coding Standards
-   - source /tmp/ci_config/versions.cfg && $INSTALL_PATH/php-codesniffer/scripts/phpcs -p -s -v -n ../ --standard=./tests/codesniffer.ruleset.xml --extensions=php
+   #- source /tmp/ci_config/versions.cfg && $INSTALL_PATH/php-codesniffer/scripts/phpcs -p -s -v -n ../ --standard=./tests/codesniffer.ruleset.xml --extensions=php
 
    # ESLint - Javascript lint tests
    #   Files can be ignored by adding to the .eslintignore file, please see the documentation
    #   provided here: http://eslint.org/docs/user-guide/command-line-interface
-   - "$(npm bin)/eslint -f compact ./"
+   #- "$(npm bin)/eslint -f compact ./"
 
    # CSSLint - CSS line tests
    #   Rules applied come from CI_config, the repo may add files to an exclusion list
    #   by specifying the --exclude-list option like:
    #      csslint --exclude-list=thirdparty.css,tests/
    #   This would ignore the thirdparty.css file and any css files under the tests path
-   - "$(npm bin)/csslint --format=compact --quiet ./"
+   #- "$(npm bin)/csslint --format=compact --quiet ./"
 
 notifications:
   email:

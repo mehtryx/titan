@@ -142,8 +142,8 @@ install_test_suite() {
 	# modify the path to reflect actual test folder path
 	sed $ioption "s:replace/:$WP_TESTS_DIR/tests/:" $EXEC_DIR/tests/phpunit.xml
 
-	# update the path in bootstrap.php for the WP_TESTS_DIR variable
-	sed $ioption "s:WP_TESTS_DIR:$WP_TESTS_DIR:" $EXEC_DIR/tests/bootstrap.php
+	# update the path in bootstrap.php for the WP_TESTS_DIR variable.
+	sed $ioption "s:_tests_dir = '[a-zA-Z0-9\-\/\_]*';:_tests_dir = '$WP_TESTS_DIR';:" $EXEC_DIR/tests/bootstrap.php
 
 	# Pull down wpcom_vip helper functionality - Developers should include these in the bootstrap file as needed only
 	svn co --quiet --non-interactive --trust-server-cert https://vip-svn.wordpress.com/plugins/vip-do-not-include-on-wpcom
