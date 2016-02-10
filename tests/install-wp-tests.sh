@@ -241,6 +241,7 @@ install_code_sniffer() {
 			# current version is in cach/installed.  Skip.
 			echo -e "${CYAN}PHP Codesniffer version ${PHP_CODESNIFFER_VERSION} is cached, skipping re-install.${NC}"
 			# Set install path for WordPress Coding Standards
+			cd $CODE_SNIFFER_DIR
 			./scripts/phpcs --config-set installed_paths ${WP_CODING_STD_DIR}
 			return
 		else
