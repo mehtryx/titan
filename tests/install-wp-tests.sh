@@ -158,6 +158,7 @@ update_test_configuration_files() {
 
 	# update the path in bootstrap.php for the WP_TESTS_DIR variable.
 	sed $ioption "s:_tests_dir = '[a-zA-Z0-9\-\/\_]*';:_tests_dir = '$WP_TESTS_DIR';:" $EXEC_DIR/tests/bootstrap.php
+	cp $EXEC_DIR/tests/phpunit.xml /tmp/phpunit.xml
 }
 
 install_db() {
