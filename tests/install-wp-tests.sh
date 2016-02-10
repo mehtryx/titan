@@ -91,8 +91,6 @@ install_test_suite() {
 		if [ -f $WP_TESTS_DIR/.ci-$WP_VERSION.ver ]; then
 			# current version is in cach/installed.  Skip.
 			echo -e "${CYAN}WordPress Test Librairies version ${WP_VERSION} is cached, skipping re-install.${NC}"
-			# just update the configuration files as these change with each execution (potentially)
-			update_test_configuration_files
 			return
 		else
 			# Not installed or incorrect version
@@ -131,9 +129,6 @@ install_test_suite() {
 	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-wpcom.php
 	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-stats-wpcom.php
 
-	# Update all the test configuration files from latest config or execution function values
-	update_test_configuration_files
-	
 	# mark the version
 	touch ${WP_TESTS_DIR}/.ci-${WP_VERSION}.ver
 }
@@ -328,4 +323,6 @@ install_db
 install_coding_standards
 install_code_sniffer
 install_lints
+update_test_configuration_files
+
 
