@@ -6,7 +6,7 @@ sudo: required
 # Added caching support to speed up builds!
 cache:
     directories:
-    - /ci-build
+    - ~/ci-build
     - node_modules
 
 php:
