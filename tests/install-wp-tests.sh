@@ -101,13 +101,6 @@ install_test_suite() {
 		echo -e "${RED}No cached copy present or requested for WordPress Test Library, beginning fresh install...${NC}"
 	fi
 
-	# portable in-place argument for both GNU sed and Mac OSX sed
-	if [[ $(uname -s) == 'Darwin' ]]; then
-		local ioption='-i .bak'
-	else
-		local ioption='-i'
-	fi
-
 	# Remove any files that may still be there before re-installing
 	if [ -d $WP_TESTS_DIR ]; then
 		rm -rf $WP_TESTS_DIR
@@ -134,6 +127,13 @@ install_test_suite() {
 }
 
 update_test_configuration_files() {
+	
+	# portable in-place argument for both GNU sed and Mac OSX sed
+	if [[ $(uname -s) == 'Darwin' ]]; then
+		local ioption='-i .bak'
+	else
+		local ioption='-i'
+	fi
 	
 	# Remove the temp files for test configuration
 	rm -f $EXEC_DIR/tests/phpunit.xml
