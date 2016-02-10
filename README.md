@@ -23,3 +23,5 @@ No settings required, for testing the code itself is used as-is.
 ## Dependencies
 
 None.
+
+## Cache is gooood
