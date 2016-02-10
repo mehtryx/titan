@@ -290,8 +290,8 @@ create_ci_build_path() {
 
 	if [[ $TRAVIS == "true" ]]; then
 		#Travis needs us to use sudo and open permissions on this path
-		sudo mkdir -p $INSTALL_PATH
-		sudo chmod 777 $INSTALL_PATH
+		mkdir -p $INSTALL_PATH
+		chmod 777 $INSTALL_PATH
 	else
 		mkdir -p $INSTALL_PATH
 	fi
