@@ -91,6 +91,8 @@ install_test_suite() {
 		if [ -f $WP_TESTS_DIR/.ci-$WP_VERSION.ver ]; then
 			# current version is in cach/installed.  Skip.
 			echo -e "${CYAN}WordPress Test Librairies version ${WP_VERSION} is cached, skipping re-install.${NC}"
+			# just update the configuration files as these change with each execution (potentially)
+			update_test_configuration_files
 			return
 		else
 			# Not installed or incorrect version
@@ -100,17 +102,6 @@ install_test_suite() {
 		# either we are not caching or directory does not exist ( first run )
 		echo -e "${RED}No cached copy present or requested for WordPress Test Library, beginning fresh install...${NC}"
 	fi
-
-	# Remove the temp files for test configuration
-	rm -f $EXEC_DIR/tests/phpunit.xml
-	rm -f $EXEC_DIR/tests/phpunit.xml.bak
-	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
-
-	# copy the codesniffer ruleset into the tests folder.
-	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
-
-	# copy the phpunit test config into the tests folder.
-	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
 
 	# portable in-place argument for both GNU sed and Mac OSX sed
 	if [[ $(uname -s) == 'Darwin' ]]; then
@@ -132,6 +123,35 @@ install_test_suite() {
 	svn co --quiet --non-interactive --trust-server-cert https://develop.svn.wordpress.org/tags/${WP_VERSION}/tests/phpunit/data/
 
 	wget -nv -O wp-tests-config.php https://develop.svn.wordpress.org/tags/${WP_VERSION}/wp-tests-config-sample.php
+
+	# Pull down wpcom_vip helper functionality - Developers should include these in the bootstrap file as needed only
+	svn co --quiet --non-interactive --trust-server-cert https://vip-svn.wordpress.com/plugins/vip-do-not-include-on-wpcom
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-init.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-wpcom.php
+	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-stats-wpcom.php
+
+	# Update all the test configuration files from latest config or execution function values
+	update_test_configuration_files
+	
+	# mark the version
+	touch ${WP_TESTS_DIR}/.ci-${WP_VERSION}.ver
+}
+
+update_test_configuration_files() {
+	
+	# Remove the temp files for test configuration
+	rm -f $EXEC_DIR/tests/phpunit.xml
+	rm -f $EXEC_DIR/tests/phpunit.xml.bak
+	rm -f $EXEC_DIR/tests/codesniffer.ruleset.xml
+
+	# copy the codesniffer ruleset into the tests folder.
+	cp /tmp/ci_config/codesniffer.ruleset.xml $EXEC_DIR/tests/
+
+	# copy the phpunit test config into the tests folder.
+	cp /tmp/ci_config/phpunit.xml $EXEC_DIR/tests/
+
+	# modifies the wp-tests-config.php file for db access
 	sed $ioption "s:dirname( __FILE__ ) . '/src/':'$WP_CORE_DIR':" wp-tests-config.php
 	sed $ioption "s/youremptytestdbnamehere/$DB_NAME/" wp-tests-config.php
 	sed $ioption "s/yourusernamehere/$DB_USER/" wp-tests-config.php
@@ -143,16 +163,6 @@ install_test_suite() {
 
 	# update the path in bootstrap.php for the WP_TESTS_DIR variable.
 	sed $ioption "s:_tests_dir = '[a-zA-Z0-9\-\/\_]*';:_tests_dir = '$WP_TESTS_DIR';:" $EXEC_DIR/tests/bootstrap.php
-
-	# Pull down wpcom_vip helper functionality - Developers should include these in the bootstrap file as needed only
-	svn co --quiet --non-interactive --trust-server-cert https://vip-svn.wordpress.com/plugins/vip-do-not-include-on-wpcom
-	wget -nv https://vip-svn.wordpress.com/plugins/vip-init.php
-	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper.php
-	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-wpcom.php
-	wget -nv https://vip-svn.wordpress.com/plugins/vip-helper-stats-wpcom.php
-
-	# mark the version
-	touch ${WP_TESTS_DIR}/.ci-${WP_VERSION}.ver
 }
 
 install_db() {
@@ -229,6 +239,8 @@ install_code_sniffer() {
 		if [ -f $CODE_SNIFFER_DIR/.ci-$PHP_CODESNIFFER_VERSION.ver ]; then
 			# current version is in cach/installed.  Skip.
 			echo -e "${CYAN}PHP Codesniffer version ${PHP_CODESNIFFER_VERSION} is cached, skipping re-install.${NC}"
+			# Set install path for WordPress Coding Standards
+			./scripts/phpcs --config-set installed_paths ${WP_CODING_STD_DIR}
 			return
 		else
 			# Not installed or incorrect version
