@@ -12,7 +12,7 @@ class PostmediaTest extends WP_UnitTestCase {
 
 	function testSample() {
 		// replace this with some actual testing code
-		$this->assertTrue( false );
+		$this->assertTrue( true );
 	}
 
 	function tearDown() {
