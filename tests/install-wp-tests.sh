@@ -27,11 +27,9 @@ update_postmedia_test_config() {
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
 	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
-	# these three lines are temporary to get the "beta" changes
-	cd /tmp/ci_config
-	git checkout eslint
-	cd $EXEC_DIR
-	
+	cd /tmp.ci_config
+	git co path
+
 	# Load the configuraiton files and get dependency versions
 	source /tmp/ci_config/versions.cfg
 	echo -e "${CYAN}Executing with WordPress ${WP_VERSION}, PHP Codesniffer ${PHP_CODESNIFFER_VERSION}, WordPress Coding Standards ${WP_CODING_STD_VERSION}, ESS Lint ${JS_LINT_VERSION}, and CSS Lint ${CSS_LINT_VERSION}${NC}"
@@ -296,26 +294,11 @@ install_lints() {
 }
 
 create_ci_build_path() {
-
-	if [[ $TRAVIS == "true" ]]; then
-		#Travis needs us to use sudo and open permissions on this path
-		mkdir -p $INSTALL_PATH
-		chmod 777 $INSTALL_PATH
-	else
-		mkdir -p $INSTALL_PATH
-	fi
-
+	mkdir -p $INSTALL_PATH
+	# Ensure caching processes can access this path with any service account, must have rwx so full 777 for this.
+	chmod 777 $INSTALL_PATH
 }
 
-update_git_ignore() {
-
-	# We need to make sure there is a git ignore file and that it includes files which should not be committed ( helps devs not commit them )
-	# bootstrap.php.bak, ewww....this is going to be messy cause we change it for testing, but.....after testing we need to revert...aha after script!
-	echo "not ready yet...."
-
-}
-
-update_git_ignore
 create_ci_build_path
 install_wp
 install_test_suite
@@ -324,5 +307,3 @@ install_coding_standards
 install_code_sniffer
 install_lints
 update_test_configuration_files
-
-
