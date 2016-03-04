@@ -27,7 +27,7 @@ update_postmedia_test_config() {
 	# pull down the custom files required to support wordpress and the testing configs
 	cd $EXEC_DIR
 	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
-	cd /tmp.ci_config
+	cd /tmp/ci_config
 	git co path
 
 	# Load the configuraiton files and get dependency versions
