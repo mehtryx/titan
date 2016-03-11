@@ -1,7 +1,8 @@
+<?php
 /**
  * Demo Code to Break stuff
  */
-class TitanProject {
+class Titan {
 
 	private $topics;
 
@@ -13,7 +14,7 @@ class TitanProject {
 	 */
 	public function __construct() {
 
-		// Add admin hooks 
+		// Add admin hooks
 		if ( is_admin() ) {
 			add_action( 'admin_menu', array( $this, 'create_settings_menu' ) );
 			add_action( 'admin_init', array( $this, 'register_settings' ) );
