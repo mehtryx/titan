@@ -13,5 +13,6 @@ class TestClass extends \WP_Widget {
 	function __construct() {
 		parent::__construct( 'TvListings', 'TV Listings Widget', array( 'description' => 'Add a TV listings widget' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'tv_listings_widget_css_enqueue' ) );
+		// boom test
 	}
 }
