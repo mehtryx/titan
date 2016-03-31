@@ -9,7 +9,7 @@ use Postmedia\Web\Utilities;
  * Author: Postmedia Network Inc.
  * Copyright © 2016 Postmedia Network Inc.
 */
-class test_class extends \WP_Widget {
+class test_class {
 	function __construct() {
 		parent::__construct( 'TvListings', 'TV Listings Widget', array( 'description' => 'Add a TV listings widget' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'tv_listings_widget_css_enqueue' ) );
