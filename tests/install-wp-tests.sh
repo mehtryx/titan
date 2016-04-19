@@ -28,7 +28,7 @@ update_postmedia_test_config() {
 	cd $EXEC_DIR
 	git clone --quiet https://github.com/Postmedia-Digital/CI_Config.git /tmp/ci_config
 	cd /tmp/ci_config
-	git checkout fix-class_name_check
+	git checkout code-coverage
 
 	# Load the configuraiton files and get dependency versions
 	source /tmp/ci_config/versions.cfg
