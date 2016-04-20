@@ -1,16 +1,23 @@
 <?xml version="1.0"?>
-<ruleset name="CI-Theme WordPress Theme Coding Standards Configuration">
-	<!-- Set a description for this ruleset. -->
-	<description>A custom set of code standard rules</description>
+<ruleset name="CI Coding Standards Configuration">
+
+	<description>Postmedia's Accepted Coding Standard Rules</description>
 
 	<!-- Exclude the test directories -->
 	<exclude-pattern>tests/*</exclude-pattern>
 
+	<!-- global arguments used by sniffs -->
 	<arg name="tab-width" value="4" />
 
 	<!-- Postmedia Standards -->
+	<rule ref="Postmedia.Files.ClassFilename" />
 	<rule ref="Postmedia.Files.LowercasedFilename" />
-
+	<rule ref="Postmedia.XSS.EscapeOutput">
+		<properties>
+			<property name="customEscapingFunctions" type="array" value="Postmedia\Web\Utilities::escaped_layouts,Utilities::escaped_layouts" />
+			<property name="customSanitizingFunctions" type="array" value="Postmedia\Web\Utilities::escaped_layouts,Utilities::escaped_layouts" />
+		</properties>
+	</rule>
 
 
 	<!-- PEAR Standards -->
@@ -130,11 +137,5 @@
 	<rule ref="WordPress.WhiteSpace.CastStructureSpacing" />
 	<rule ref="WordPress.WP.EnqueuedResources" />
 	<rule ref="WordPress.WP.PreparedSQL" />
-	<rule ref="WordPress.XSS.EscapeOutput">
-		<properties>
-			<property name="customEscapingFunctions" type="array" value="get_sponsored_keyword,get_outfit_video,get_outfit_widget" />
-			<property name="customSanitizingFunctions" type="array" value="get_sponsored_keyword,get_outfit_video,get_outfit_widget" />
-		</properties>
-	</rule>
 
 </ruleset>

@@ -1,6 +1,6 @@
 <?php
 
-$_tests_dir = '/Users/mehtryx/ci-build/wordpress-tests-lib/'; // DO NOT COMMIT THIS LINE CHANGE - This line is modified everytime the installer for testing runs, you do not need to commit this change.
+$_tests_dir = 'WP_TESTS_DIR'; // DO NOT COMMIT THIS LINE CHANGE - This line is modified everytime the installer for testing runs, you do not need to commit this change.
 
 require_once $_tests_dir . '/includes/functions.php';
 
