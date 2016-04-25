@@ -28,7 +28,7 @@ namespace Postmedia\Web;
  * $this->path('library')
  *
  */
-trait Paths {
+trait PathsThatDontMatch {
 
 	/**
 	 * Get the path to the base directory
