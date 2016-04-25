@@ -28,7 +28,7 @@ namespace Postmedia\Web;
  * $this->path('library')
  *
  */
-trait paths {
+trait Paths {
 
 	/**
 	 * Get the path to the base directory
